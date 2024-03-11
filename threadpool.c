@@ -5,6 +5,7 @@
 
 sem_t tasks_sem;
 int NUM_THREADS;
+int cancel_threads = 0;
 
 Queue* queue;
 pthread_t *bees;
@@ -13,9 +14,13 @@ pthread_t *bees;
 void *worker(void *param)
 {
     while (1) {
+        if (cancel_threads == 1) {
+            break;
+        }
+
         int result = sem_wait(&tasks_sem);
         if (result < 0) {
-            perror("Error: ");
+            // Failed to wait for resource
             continue;
         } else if (result == 0) {
             Node* popped = dequeue(queue);
@@ -42,11 +47,10 @@ int pool_submit(void (*somefunction)(void *p), void *p)
 
     int result = enqueue(queue, *task);
     if (queue -> head == NULL) {
-        printf("Failed to insert into queue; result = %d\n", result);
+        fprintf(stderr, "Failed to insert into queue; result = %d\n", result);
     }
     if (result == 0) {
         sem_post(&tasks_sem);
-        printf("Just submitted to pool\n");
     }
     return result;
 }
@@ -68,6 +72,11 @@ void pool_init(int num_threads)
 
 void pool_shutdown(void)
 {
+    cancel_threads = 1;
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        sem_post(&tasks_sem);
+    }
+
     for (int i = 0; i < NUM_THREADS; ++i)
         pthread_join(bees[i],NULL);
 }

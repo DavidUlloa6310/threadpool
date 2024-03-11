@@ -12,7 +12,6 @@ Queue* queue_init() {
 Node* dequeue(Queue* queue) 
 {
     if (queue -> head == NULL) {
-        printf("Returning null from pop\n");
         return NULL;
     }
 
@@ -36,7 +35,6 @@ int enqueue(Queue *queue, Task t)
     new_n -> next = NULL;
     new_n -> task = t;
 
-    printf("Inserting task to queue...\n");
     if (queue -> head == NULL) {
         pthread_mutex_lock(&queue_lock);
         queue -> head = new_n;
