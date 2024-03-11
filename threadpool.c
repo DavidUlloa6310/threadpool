@@ -11,6 +11,7 @@ Queue* queue;
 pthread_t *bees;
 
 
+// Worker program waits for work to be available and calls execute function to run task
 void *worker(void *param)
 {
     while (1) {
@@ -33,12 +34,14 @@ void *worker(void *param)
     pthread_exit(0);
 }
 
+// Execute function runs task
 void execute(void (*somefunction)(void *p), void *p)
 {
     printf("Executing code...\n");
     (*somefunction)(p);
 }
 
+// Allows user to submit task into thread pool - task must include function and parameters
 int pool_submit(void (*somefunction)(void *p), void *p)
 {
     Task *task = malloc(sizeof(Task));
@@ -55,6 +58,7 @@ int pool_submit(void (*somefunction)(void *p), void *p)
     return result;
 }
 
+// Initializes pool, queue, and threads
 void pool_init(int num_threads)
 {
     NUM_THREADS = num_threads;
@@ -70,6 +74,7 @@ void pool_init(int num_threads)
         pthread_create(&bees[i],NULL,worker,NULL);
 }
 
+// Closes thread pool by updating cancel_threads
 void pool_shutdown(void)
 {
     cancel_threads = 1;

@@ -2,6 +2,7 @@
 
 pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 
+// Initialize queue with empty head and rear
 Queue* queue_init() {
     Queue *q = (Queue *) malloc(sizeof(Queue));
     q -> head = NULL;
@@ -9,6 +10,7 @@ Queue* queue_init() {
     return q;
 }
  
+// Remove task from queue, returns NULL if queue is empty
 Node* dequeue(Queue* queue) 
 {
     if (queue -> head == NULL) {
