@@ -46,6 +46,11 @@ int main(int argc, char** argv)
 
     // submit the work to the queue
     pool_submit(&add,&work);
+    pool_submit(&add,&work);
+    pool_submit(&add,&work);
+    pool_submit(&add,&work);
+    pool_submit(&add,&work);
+    pool_submit(&add,&work);
 
     // may be helpful 
     sleep(3);
