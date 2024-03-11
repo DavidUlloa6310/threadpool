@@ -1,0 +1,73 @@
+/**
+ * Implementation of thread pool.
+ */
+#include "threadpool.h"
+
+sem_t tasks_sem;
+int NUM_THREADS;
+
+Queue* queue;
+pthread_t *bees;
+
+
+void *worker(void *param)
+{
+    while (1) {
+        int result = sem_wait(&tasks_sem);
+        if (result < 0) {
+            perror("Error: ");
+            continue;
+        } else if (result == 0) {
+            Node* popped = dequeue(queue);
+            if (popped != NULL) {
+                Task task = popped -> task;
+                execute(task.function, task.data);
+            }
+        }
+    }
+    pthread_exit(0);
+}
+
+void execute(void (*somefunction)(void *p), void *p)
+{
+    printf("Executing code...\n");
+    (*somefunction)(p);
+}
+
+int pool_submit(void (*somefunction)(void *p), void *p)
+{
+    Task *task = malloc(sizeof(Task));
+    task->function = somefunction;
+    task->data = p;
+
+    int result = enqueue(queue, *task);
+    if (queue -> head == NULL) {
+        printf("Failed to insert into queue; result = %d\n", result);
+    }
+    if (result == 0) {
+        sem_post(&tasks_sem);
+        printf("Just submitted to pool\n");
+    }
+    return result;
+}
+
+void pool_init(int num_threads)
+{
+    NUM_THREADS = num_threads;
+    queue = queue_init();
+    bees = (pthread_t*)malloc(num_threads * sizeof(pthread_t));
+    if (bees == NULL) {
+        fprintf(stderr, "Memory allocation for `bees` failed");
+        exit(1);
+    }
+
+    sem_init(&tasks_sem, 0, 0);
+    for (int i = 0; i < num_threads; ++i)
+        pthread_create(&bees[i],NULL,worker,NULL);
+}
+
+void pool_shutdown(void)
+{
+    for (int i = 0; i < NUM_THREADS; ++i)
+        pthread_join(bees[i],NULL);
+}
